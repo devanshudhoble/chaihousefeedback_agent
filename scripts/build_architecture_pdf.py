@@ -145,7 +145,7 @@ def build_pdf() -> None:
 
     story += [Paragraph("06 · Jev decision contract", styles["h1"]),
               Paragraph("Jev is the routing decision step and the main efficiency factor: one request can answer typed questions such as urgency and route. It is not the image model, the notification provider, or the source of computed dashboard statistics.", styles["body"]),
-              Paragraph("Input: feedback text and four 1-5 ratings. Output urgency: emergency | improvement | routine. The workflow validates the label, applies hard safety overrides, then follows a known LangGraph edge. If Jev is unavailable or returns an unknown label, a deterministic fallback handles intake and records the result.", styles["code"]),
+              Paragraph("Input: feedback text and four 1-5 ratings. Output urgency: emergency | improvement | routine. The workflow validates the label, applies hard safety overrides, then follows a known LangGraph edge. The local Jev-style endpoint requires Ollama 0.35+ and a decision model such as nimble. Older versions or unavailable models use a deterministic fallback.", styles["code"]),
               Paragraph("Suggested production review", styles["h2"]),
               Paragraph("Before relying on live alerts, review examples with the owner, especially multilingual and misspelled reports; measure missed emergencies and false alarms; confirm who receives SMS and at what hours; and secure the dashboard behind owner authentication before public deployment.", styles["body"])]
 

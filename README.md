@@ -66,7 +66,7 @@ Dashboard analysis is a separate LangGraph `StateGraph` with a bounded analyst n
 
 ## Why Jev is useful here
 
-Jev/TypeSafe is the prototype’s fast decision layer. It can answer a typed urgency question using the submitted ratings and comment, allowing the graph to route a report without asking a general-purpose model to decide every step. It does not replace the workflow, image model, notification provider, or SQL analytics.
+Jev/TypeSafe is the prototype’s fast decision layer. It can answer typed urgency and category questions using the submitted ratings and comment, allowing the graph to route a report without asking a general-purpose model to decide every step. The local Ollama Jev-style endpoint requires Ollama 0.35 or newer and a decision model such as `nimble`; older versions fall back to the deterministic classifier. Jev does not replace the workflow, image model, notification provider, or SQL analytics.
 
 The application validates Jev’s output and applies a hard safety override for explicit hazard reports. If Jev is unavailable or returns an invalid label, the deterministic fallback keeps intake working. Configure the Jev-style Ollama endpoint with `OLLAMA_BASE_URL` and `OLLAMA_DECISION_MODEL`.
 
@@ -120,7 +120,7 @@ Run Ollama locally and pull model names suitable for your machine. The default J
 ```env
 OLLAMA_BASE_URL=http://127.0.0.1:11434
 OLLAMA_DECISION_MODEL=nimble
-OLLAMA_CHAT_MODEL=qwen3:8b
+OLLAMA_CHAT_MODEL=llama3.2:latest
 OLLAMA_VISION_MODEL=qwen2.5vl:7b
 ```
 

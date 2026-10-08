@@ -123,9 +123,10 @@ def write_dashboard_summary(metrics: dict) -> str | None:
                     {"role": "user", "content": json.dumps(context)},
                 ],
                 "stream": False,
-                "options": {"temperature": 0.2},
+                "options": {"temperature": 0.2, "num_predict": 120},
             },
-            timeout=settings.ollama_timeout_seconds,
+            # Keep the owner dashboard responsive if a local model is cold or overloaded.
+            timeout=min(settings.ollama_timeout_seconds, 4.0),
         )
         response.raise_for_status()
         text = response.json().get("message", {}).get("content", "").strip()

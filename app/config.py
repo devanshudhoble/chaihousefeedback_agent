@@ -20,7 +20,7 @@ class Settings:
     webhook_token: str = os.getenv("WEBHOOK_TOKEN", "")
     ollama_base_url: str = os.getenv("OLLAMA_BASE_URL", "http://127.0.0.1:11434").rstrip("/")
     ollama_decision_model: str = os.getenv("OLLAMA_DECISION_MODEL", "nimble")
-    ollama_chat_model: str = os.getenv("OLLAMA_CHAT_MODEL", "qwen3:8b")
+    ollama_chat_model: str = os.getenv("OLLAMA_CHAT_MODEL", "llama3.2:latest")
     ollama_vision_model: str = os.getenv("OLLAMA_VISION_MODEL", "qwen2.5vl:7b")
     ollama_timeout_seconds: float = float(os.getenv("OLLAMA_TIMEOUT_SECONDS", "12"))
     twilio_account_sid: str = os.getenv("TWILIO_ACCOUNT_SID", "")
