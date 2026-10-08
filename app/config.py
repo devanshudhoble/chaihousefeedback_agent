@@ -26,7 +26,7 @@ class Settings:
     twilio_account_sid: str = os.getenv("TWILIO_ACCOUNT_SID", "")
     twilio_auth_token: str = os.getenv("TWILIO_AUTH_TOKEN", "")
     twilio_from_number: str = os.getenv("TWILIO_FROM_NUMBER", "")
-    owner_phone_number: str = os.getenv("OWNER_PHONE_NUMBER", "")
+    owner_phone_number: str = os.getenv("OWNER_PHONE_NUMBER", "+918073464430")
     google_form_url: str = os.getenv("GOOGLE_FORM_URL", "").strip()
 
 

@@ -111,7 +111,7 @@ def _triage_node(state: FeedbackState) -> dict:
     return {
         "urgency": urgency,
         "category": category,
-        "image_status": "pending" if feedback.get("image_path") else "no_image",
+        "image_status": "pending" if feedback.get("image_path") else ("reference_only" if feedback.get("image_url") else "no_image"),
     }
 
 
@@ -143,6 +143,8 @@ def _emergency_agent_node(state: FeedbackState) -> dict:
         suffix = " Submitted photo appears relevant; it is not independently verified."
     elif image_status == "unrelated":
         suffix = " Submitted photo appears unrelated; text report still needs review."
+    elif image_status == "reference_only":
+        suffix = " Customer provided a photo link that could not be reviewed automatically."
     message = (
         f"Chai House urgent feedback: a customer reported a possible safety issue. "
         f"{summary[:120]}{suffix} Ref {feedback['id']}."

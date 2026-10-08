@@ -7,7 +7,7 @@ A local-first customer feedback prototype for **Chai House, Bommanahalli, Bengal
 ## What it includes
 
 - Mobile-friendly feedback form with food, waiting time, ambience, and staff ratings, optional comment, and optional image.
-- Generated QR code for the local form or an external Google Form (`static/qr-feedback.png`).
+- Generated QR code for a configured external Google Form (`app/static/qr-feedback.png`); the local form remains a preview.
 - FastAPI intake API and an authenticated Apps Script webhook endpoint.
 - LangGraph feedback workflow with three bounded routes: emergency, improvement, and routine.
 - Ollama Jev/TypeSafe decision adapter for structured urgency routing.
@@ -143,26 +143,9 @@ Without all four values, urgent alerts are logged as `demo_logged` and appear on
 
 Set `WEBHOOK_TOKEN` to a long random value and optionally set `GOOGLE_FORM_URL`. The QR then opens the Google Form URL, and the built-in form remains available at `/feedback?demo=true`. The webhook returns `503` while no token is configured and rejects requests with an invalid token.
 
-Create an Apps Script project bound to the response Sheet and add an installable **On form submit** trigger. Adapt the question labels below to exactly match your Form:
+Set `GOOGLE_FORM_URL` to the public responder URL to generate the QR. Until this is configured, the owner dashboard deliberately shows setup instructions instead of a QR that points to the local preview.
 
-```javascript
-const BACKEND_URL = "https://YOUR-HTTPS-HOST/webhooks/google-form";
-const WEBHOOK_TOKEN = "same-secret-as-WEBHOOK_TOKEN";
-
-function onFormSubmit(e) {
-  const payload = { namedValues: e.namedValues };
-  const response = UrlFetchApp.fetch(BACKEND_URL, {
-    method: "post",
-    contentType: "application/json",
-    headers: { "X-Webhook-Token": WEBHOOK_TOKEN },
-    payload: JSON.stringify(payload),
-    muteHttpExceptions: true
-  });
-  console.log(response.getResponseCode(), response.getContentText());
-}
-```
-
-The Google Form submit trigger must call an HTTPS endpoint reachable from Google. A local `localhost` URL cannot be reached by Apps Script; use a temporary HTTPS tunnel for a demo or deploy the API. Google file-upload questions require customers to sign in to a Google Account. The prototype’s built-in form supports optional images directly. Google Drive file links are stored as references only and are not automatically downloaded or analyzed.
+For response ingestion, deploy the API behind an HTTPS URL reachable by Google. In the response Sheet’s Apps Script project, add [`scripts/google_form_bridge.gs`](scripts/google_form_bridge.gs), set `BACKEND_URL` and `WEBHOOK_TOKEN` in **Project Settings → Script properties**, then create an installable **On form submit** trigger for `onFormSubmit`. The bridge forwards ratings/comments and, when a photo upload question exists, reads the file through the trigger owner’s Drive access and sends a size-limited image to the backend vision review. Google Forms file uploads require respondents to sign in to a Google Account. A localhost URL cannot be called by Apps Script; use an HTTPS tunnel for a demo or deploy the API.
 
 ## API endpoints
 
@@ -180,14 +163,15 @@ The Google Form submit trigger must call an HTTPS endpoint reachable from Google
 
 ## Owner dashboard
 
-The UI uses a white and black visual system with muted gray surfaces and red emergency indicators. It provides:
+The UI uses a white and black visual system with warm gray surfaces and red emergency indicators. It provides:
 
 - Total response and category-rating cards
 - An emergency banner and emergency-only filter
 - A separate needs-improvement queue
 - The latest customer comments and optional-photo indicator
 - A concise feedback-analysis narrative and top category signals
-- The QR code and a link to preview the customer form
+- The configured Google Form QR, or setup instructions when no form URL is configured
+- An agent pipeline view showing Jev/fallback triage, photo review, and SMS configuration state
 
 ## PDF architecture guide
 

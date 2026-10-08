@@ -8,6 +8,7 @@ data/*.db
 data/uploads/*
 !data/uploads/.gitkeep
 static/qr-feedback.png
+app/static/qr-feedback.png
 *.log
 .coverage
 htmlcov/

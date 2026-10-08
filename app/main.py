@@ -5,7 +5,9 @@ import re
 import uuid
 import hashlib
 import json
+import base64
 from pathlib import Path
+from urllib.parse import urlparse
 
 import qrcode
 from fastapi import FastAPI, File, Form, Header, HTTPException, Request, UploadFile
@@ -26,8 +28,9 @@ app = FastAPI(
     version="0.1.0",
 )
 settings.upload_dir.mkdir(parents=True, exist_ok=True)
-(ROOT / "static").mkdir(exist_ok=True)
-app.mount("/static", StaticFiles(directory=ROOT / "static"), name="static")
+static_dir = ROOT / "app" / "static"
+static_dir.mkdir(parents=True, exist_ok=True)
+app.mount("/static", StaticFiles(directory=static_dir), name="static")
 app.mount("/uploads", StaticFiles(directory=settings.upload_dir), name="uploads")
 templates = Jinja2Templates(directory=str(ROOT / "app" / "templates"))
 
@@ -43,9 +46,12 @@ def startup() -> None:
 
 
 def _create_qr() -> None:
-    destination = ROOT / "static" / "qr-feedback.png"
-    form_url = settings.google_form_url or f"{settings.public_url}/feedback"
-    qrcode.make(form_url, box_size=10, border=3).save(destination)
+    destination = static_dir / "qr-feedback.png"
+    if settings.google_form_url:
+        qrcode.make(settings.google_form_url, box_size=10, border=3).save(destination)
+    elif destination.exists():
+        # Never leave a stale QR visible as if it pointed to the configured Google Form.
+        destination.unlink()
 
 
 def _validate_rating(value: int, label: str) -> int:
@@ -123,6 +129,14 @@ def _comment_value(named_values: dict) -> str:
     return ""
 
 
+def _google_drive_url(value: object) -> str | None:
+    candidate = str(value or "").strip()
+    parsed = urlparse(candidate)
+    if parsed.scheme == "https" and parsed.hostname in {"drive.google.com", "docs.google.com"}:
+        return candidate[:2000]
+    return None
+
+
 @app.get("/", response_class=HTMLResponse)
 def dashboard(request: Request, view: str = "all"):
     metrics = summarize_feedback()
@@ -145,6 +159,9 @@ def dashboard(request: Request, view: str = "all"):
             "view": view,
             "narrative": narrative,
             "form_url": settings.google_form_url or f"{settings.public_url}/feedback",
+            "google_form_configured": bool(settings.google_form_url),
+            "sms_configured": all((settings.twilio_account_sid, settings.twilio_auth_token, settings.twilio_from_number, settings.owner_phone_number)),
+            "owner_phone": settings.owner_phone_number,
         },
     )
 
@@ -236,6 +253,22 @@ async def google_form_webhook(request: Request, x_webhook_token: str | None = He
     named_values = payload.get("namedValues", payload)
     stable_payload = json.dumps(payload, sort_keys=True, ensure_ascii=False, default=str)
     form_submission_id = "GF" + hashlib.sha256(stable_payload.encode("utf-8")).hexdigest()[:10].upper()
+    image_path = None
+    image_payload = payload.get("image")
+    if isinstance(image_payload, dict) and image_payload.get("base64"):
+        content_type = str(image_payload.get("content_type", "")).lower()
+        if content_type not in IMAGE_EXTENSIONS:
+            raise HTTPException(status_code=415, detail="Google Form photo must be JPG, PNG, or WebP")
+        try:
+            image_bytes = base64.b64decode(image_payload["base64"], validate=True)
+        except (ValueError, TypeError) as exc:
+            raise HTTPException(status_code=422, detail="Google Form photo encoding is invalid") from exc
+        if not image_bytes or len(image_bytes) > MAX_IMAGE_BYTES:
+            raise HTTPException(status_code=413, detail="Google Form photo must be non-empty and 5 MB or smaller")
+        image_name = f"{uuid.uuid4().hex}{IMAGE_EXTENSIONS[content_type]}"
+        image_destination = settings.upload_dir / image_name
+        image_destination.write_bytes(image_bytes)
+        image_path = str(image_destination)
     record = _new_record(
         food_rating=_rating_value(named_values, "food", "taste"),
         wait_rating=_rating_value(named_values, "wait", "waiting"),
@@ -243,7 +276,8 @@ async def google_form_webhook(request: Request, x_webhook_token: str | None = He
         staff_rating=_rating_value(named_values, "staff", "service"),
         comment=_comment_value(named_values),
         source="google_form",
-        image_url=payload.get("image_url"),
+        image_url=_google_drive_url(payload.get("image_url")),
+        image_path=image_path,
         record_id=form_submission_id,
     )
     _insert_feedback(record)
@@ -266,7 +300,11 @@ def health():
 
 @app.get("/api/qr")
 def qr_info():
-    return {"url": settings.google_form_url or f"{settings.public_url}/feedback", "image": "/static/qr-feedback.png"}
+    return {
+        "configured": bool(settings.google_form_url),
+        "url": settings.google_form_url or None,
+        "image": "/static/qr-feedback.png" if settings.google_form_url else None,
+    }
 
 
 @app.get("/api/feedback/{feedback_id}")

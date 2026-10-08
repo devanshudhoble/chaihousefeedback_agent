@@ -1,11 +1,33 @@
 <!doctype html>
 <html lang="en">
-<head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Share feedback · Chai House</title><link rel="preconnect" href="https://fonts.googleapis.com"><link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Manrope:wght@600;700;800&display=swap" rel="stylesheet"><link rel="stylesheet" href="/static/styles.css"></head>
-<body class="form-page"><main class="form-wrap"><a href="/" class="form-brand"><span class="brand-mark">CH</span><span><strong>chai house</strong><small>BOMMANAHALLI · BENGALURU</small></span></a><section class="form-card"><p class="eyebrow">A MOMENT TO SHARE</p><h1>How was your visit?</h1><p class="form-intro">Your feedback helps us make every cup and every visit better.</p><form action="/feedback" method="post" enctype="multipart/form-data">
-  {% for key, label in [('food_rating','Food taste'),('wait_rating','Waiting time'),('ambience_rating','Ambience'),('staff_rating','Staff service')] %}
-  <fieldset class="rating-field"><legend>{{ label }}</legend><div class="rating-options">{% for value, title in [(5,'Great'),(4,'Good'),(3,'Okay'),(2,'Poor'),(1,'Bad')] %}<label><input type="radio" name="{{ key }}" value="{{ value }}" {% if value == 4 %}checked{% endif %}><span>{{ title }}</span></label>{% endfor %}</div></fieldset>
-  {% endfor %}
-  <label class="field-label" for="comment">Anything else you’d like us to know? <span>Optional</span></label><textarea id="comment" name="comment" rows="4" maxlength="2000" placeholder="Tell us what went well or what we can improve…"></textarea>
-  <label class="upload-box" for="image"><span class="upload-icon">＋</span><span><b>Add a photo</b><small>Optional · JPG, PNG or WebP · up to 5 MB</small></span><input id="image" name="image" type="file" accept="image/jpeg,image/png,image/webp" onchange="document.getElementById('file-name').textContent=this.files[0]?.name || ''"><span id="file-name" class="file-name"></span></label>
-  <button class="button button-dark button-wide" type="submit">Send feedback <span>→</span></button><p class="privacy-note">Your feedback is shared with the Chai House owner to improve the guest experience.</p>
-</form></section><a class="back-link" href="/">← Chai House Feedback Studio</a></main></body></html>
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#f5f4f0"><title>Share your visit · Chai House</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Manrope:wght@500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/static/styles.css"><link rel="stylesheet" href="/static/refresh.css">
+</head>
+<body class="form-page customer-page">
+  <main class="form-wrap">
+    <a href="/" class="form-brand"><span class="brand-mark">CH</span><span><strong>chai house</strong><small>BOMMANAHALLI · BENGALURU</small></span></a>
+    <div class="form-welcome"><span class="welcome-spark">✳</span><span>THANK YOU FOR VISITING</span></div>
+    <section class="form-card">
+      <p class="eyebrow">YOUR VISIT, YOUR WORDS</p><h1>How was your time with us?</h1>
+      <p class="form-intro">A few quick ratings help our team make your next cup and visit even better.</p>
+      <form action="/feedback" method="post" enctype="multipart/form-data">
+        <div class="form-section-label"><span>01</span> Rate your experience <small>Choose one for each</small></div>
+        {% for key, label, hint in [('food_rating','Food & drink','Taste and quality'),('wait_rating','Waiting time','Speed of service'),('ambience_rating','Cafe atmosphere','Comfort and cleanliness'),('staff_rating','Team service','Helpfulness and welcome')] %}
+        <fieldset class="rating-field"><legend><span>{{ label }}</span><small>{{ hint }}</small></legend><div class="rating-options">{% for value, title in [(5,'Loved it'),(4,'Good'),(3,'Okay'),(2,'Not great'),(1,'Poor')] %}<label><input type="radio" name="{{ key }}" value="{{ value }}" aria-label="{{ title }}" {% if value == 4 %}checked{% endif %}><span>{{ title }}</span></label>{% endfor %}</div></fieldset>
+        {% endfor %}
+        <div class="form-section-label form-section-comment"><span>02</span> Anything else? <small>Optional</small></div>
+        <label class="field-label" for="comment">Tell us what went well or what we could improve</label>
+        <textarea id="comment" name="comment" rows="4" maxlength="2000" placeholder="Your honest feedback helps our local team…"></textarea>
+        <label class="upload-box" for="image"><span class="upload-icon">＋</span><span><b>Attach a photo</b><small>Helpful for reporting a food or cafe issue · JPG, PNG or WebP · 5 MB max</small></span><input id="image" name="image" type="file" accept="image/jpeg,image/png,image/webp" onchange="document.getElementById('file-name').textContent=this.files[0]?.name || ''"><span id="file-name" class="file-name"></span></label>
+        <button class="button button-dark button-wide submit-feedback" type="submit">Send feedback <span>→</span></button>
+        <p class="privacy-note">Shared with the Chai House owner and cafe team so they can review and improve your experience.</p>
+      </form>
+    </section>
+    <div class="customer-footer"><span>Made with care in Bommanahalli</span><span>·</span><span>Thanks for helping us grow</span></div>
+  </main>
+</body>
+</html>
