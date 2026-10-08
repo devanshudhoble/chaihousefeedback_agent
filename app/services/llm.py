@@ -53,7 +53,7 @@ def jev_decision(feedback: dict) -> dict | None:
     try:
         response = httpx.post(
             f"{settings.ollama_base_url}/v1/systemone",
-            json=payload,
+            json={**payload, "keep_alive": 0},
             timeout=settings.ollama_timeout_seconds,
         )
         response.raise_for_status()
@@ -83,6 +83,7 @@ def inspect_image(image_path: str) -> str:
                 "model": settings.ollama_vision_model,
                 "messages": [{"role": "user", "content": prompt, "images": [encoded]}],
                 "stream": False,
+                "keep_alive": 0,
                 "options": {"temperature": 0},
             },
             timeout=settings.ollama_timeout_seconds,
@@ -123,6 +124,7 @@ def write_dashboard_summary(metrics: dict) -> str | None:
                     {"role": "user", "content": json.dumps(context)},
                 ],
                 "stream": False,
+                "keep_alive": 0,
                 "options": {"temperature": 0.2, "num_predict": 120},
             },
             # Keep the owner dashboard responsive if a local model is cold or overloaded.

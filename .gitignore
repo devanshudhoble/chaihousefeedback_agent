@@ -1,6 +1,8 @@
 .venv/
 .uv-cache/
 .uv-python/
+.tools/
+.ollama-models/
 __pycache__/
 *.py[cod]
 .env

@@ -101,7 +101,7 @@
 
           <section class="panel agent-panel">
             <div class="panel-heading"><div><div class="section-kicker">HOW THE AGENT WORKS</div><h2>Review pipeline</h2></div><span class="agent-live"><i></i> Ready</span></div>
-            <div class="agent-step"><span class="step-number">01</span><div><b>Jev + safety rules</b><small>Model decision with deterministic fallback</small></div><span class="step-state">Guarded</span></div>
+            <div class="agent-step"><span class="step-number">01</span><div><b>Typed triage + safety rules</b><small>Jev-compatible model with deterministic fallback</small></div><span class="step-state">Guarded</span></div>
             <div class="agent-step"><span class="step-number">02</span><div><b>Photo review</b><small>Checks attached safety-report images</small></div><span class="step-state">On report</span></div>
             <div class="agent-step"><span class="step-number">03</span><div><b>Owner alert</b><small>{{ owner_phone }} · possible safety concerns</small></div><span class="step-state">{{ 'SMS ready' if sms_configured else 'Setup needed' }}</span></div>
             <p class="agent-footnote">Reports are unverified. An image or AI decision never confirms an incident.</p>

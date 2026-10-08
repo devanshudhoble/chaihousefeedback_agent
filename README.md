@@ -66,7 +66,7 @@ Dashboard analysis is a separate LangGraph `StateGraph` with a bounded analyst n
 
 ## Why Jev is useful here
 
-Jev/TypeSafe is the prototype’s fast decision layer. It can answer typed urgency and category questions using the submitted ratings and comment, allowing the graph to route a report without asking a general-purpose model to decide every step. The local Ollama Jev-style endpoint requires Ollama 0.35 or newer and a decision model such as `nimble`; older versions fall back to the deterministic classifier. Jev does not replace the workflow, image model, notification provider, or SQL analytics.
+Jev/TypeSafe is the prototype’s fast decision layer. It can answer typed urgency and category questions using the submitted ratings and comment, allowing the graph to route a report without asking a general-purpose model to decide every step. The local Ollama `/v1/systemone` endpoint requires Ollama 0.35 or newer. This prototype defaults to `tev1:0.8b`, a compact Jev-compatible decision model for low-memory computers; `nimble` is an alternative when the machine has enough memory. Jev-style decisions do not replace the workflow, image model, notification provider, or SQL analytics.
 
 The application validates Jev’s output and applies a hard safety override for explicit hazard reports. If Jev is unavailable or returns an invalid label, the deterministic fallback keeps intake working. Configure the Jev-style Ollama endpoint with `OLLAMA_BASE_URL` and `OLLAMA_DECISION_MODEL`.
 
@@ -115,13 +115,13 @@ On a phone connected to the same Wi-Fi, open the LAN URL printed/set in `APP_PUB
 
 ### Optional Ollama setup
 
-Run Ollama locally and pull model names suitable for your machine. The default Jev model is `nimble`; the vision and chat model names can be changed in `.env`. Set:
+Run Ollama locally and pull model names suitable for your machine. The compact defaults are `tev1:0.8b` and `qwen2.5vl:3b`; larger decision and vision models need more memory. Set:
 
 ```env
 OLLAMA_BASE_URL=http://127.0.0.1:11434
-OLLAMA_DECISION_MODEL=nimble
-OLLAMA_CHAT_MODEL=llama3.2:latest
-OLLAMA_VISION_MODEL=qwen2.5vl:7b
+OLLAMA_DECISION_MODEL=tev1:0.8b
+OLLAMA_CHAT_MODEL=tev1:0.8b
+OLLAMA_VISION_MODEL=qwen2.5vl:3b
 ```
 
 If models are not available, the prototype still accepts feedback using deterministic triage. A vision review failure leaves the image status inconclusive and never blocks an emergency alert.
@@ -145,7 +145,9 @@ Set `WEBHOOK_TOKEN` to a long random value and optionally set `GOOGLE_FORM_URL`.
 
 Set `GOOGLE_FORM_URL` to the public responder URL to generate the QR. Until this is configured, the owner dashboard deliberately shows setup instructions instead of a QR that points to the local preview.
 
-For response ingestion, deploy the API behind an HTTPS URL reachable by Google. In the response Sheet’s Apps Script project, add [`scripts/google_form_bridge.gs`](scripts/google_form_bridge.gs), set `BACKEND_URL` and `WEBHOOK_TOKEN` in **Project Settings → Script properties**, then create an installable **On form submit** trigger for `onFormSubmit`. The bridge forwards ratings/comments and, when a photo upload question exists, reads the file through the trigger owner’s Drive access and sends a size-limited image to the backend vision review. Google Forms file uploads require respondents to sign in to a Google Account. A localhost URL cannot be called by Apps Script; use an HTTPS tunnel for a demo or deploy the API.
+For response ingestion, deploy the API behind an HTTPS URL reachable by Google. In the response Sheet’s Apps Script project, add [`scripts/google_form_bridge.gs`](scripts/google_form_bridge.gs), set `BACKEND_URL` and `WEBHOOK_TOKEN` in **Project Settings → Script properties**, then create an installable **On form submit** trigger for `onFormSubmit`. The bridge forwards ratings/comments and, when a photo upload question exists, reads the file through the trigger owner’s Drive access and sends a size-limited image to the backend vision review. Google Forms file uploads require respondents to sign in to a Google Account. A localhost URL cannot be called by Apps Script; use a trusted HTTPS ingress for a demo or deploy the API.
+
+For a local demo behind an approved HTTPS ingress, run `scripts/start_google_form_intake.ps1` and forward only to `http://127.0.0.1:8001`. This restricted ASGI app exposes only the token-protected `POST /webhooks/google-form` route; it does not expose the owner dashboard or API docs. Keep the main app on port `8000` private.
 
 ## API endpoints
 
