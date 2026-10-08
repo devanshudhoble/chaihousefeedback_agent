@@ -38,6 +38,23 @@ flowchart LR
   DB --> O[Owner dashboard]
 ```
 
+## Workflow diagrams
+
+### Customer feedback to owner dashboard
+
+![Chai House feedback submission and triage workflow](docs/images/feedback-workflow.png)
+
+### What the owner dashboard shows
+
+![Chai House owner dashboard overview](docs/images/dashboard-overview.png)
+
+Both diagrams are included in the [architecture PDF](docs/chai-house-feedback-architecture.pdf). Regenerate the images and PDF after changing the diagrams:
+
+```powershell
+uv run --python 3.11 python scripts/build_workflow_images.py
+uv run --python 3.11 python scripts/build_architecture_pdf.py
+```
+
 ## Architecture
 
 | Layer | Prototype technology | Purpose |

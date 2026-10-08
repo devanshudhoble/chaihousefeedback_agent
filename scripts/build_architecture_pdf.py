@@ -9,6 +9,7 @@ from reportlab.lib.styles import ParagraphStyle, getSampleStyleSheet
 from reportlab.lib.units import inch
 from reportlab.platypus import (
     HRFlowable,
+    Image as PdfImage,
     KeepTogether,
     PageBreak,
     Paragraph,
@@ -17,6 +18,7 @@ from reportlab.platypus import (
     Table,
     TableStyle,
 )
+from build_workflow_images import build_images
 
 ROOT = Path(__file__).resolve().parents[1]
 OUTPUT = ROOT / "docs" / "chai-house-feedback-architecture.pdf"
@@ -29,6 +31,7 @@ GREEN = colors.HexColor("#36724f")
 
 
 def build_pdf() -> None:
+    workflow_image, dashboard_image = build_images()
     OUTPUT.parent.mkdir(parents=True, exist_ok=True)
     doc = SimpleDocTemplate(
         str(OUTPUT), pagesize=letter, rightMargin=0.68 * inch, leftMargin=0.68 * inch,
@@ -94,7 +97,16 @@ def build_pdf() -> None:
     ]))
     story += [t, Spacer(1, 8), Paragraph("Google Apps Script runs outside the local machine. It cannot reach localhost; use a temporary HTTPS tunnel for a connected local demo or deploy the API to a secure HTTPS host. Google Forms file-upload questions require respondents to sign in to a Google Account.", styles["small"])]
 
-    story += [PageBreak(), Paragraph("03 · LangGraph building blocks", styles["h1"]),
+    image_width = 6.85 * inch
+    image_height = 4.62 * inch
+    story += [PageBreak(), Paragraph("Workflow visual · Feedback intake", styles["h1"]),
+              Paragraph("This diagram shows how a customer response reaches the local FastAPI backend, passes through LangGraph routing, and becomes visible to the owner.", styles["body"]),
+              PdfImage(str(workflow_image), width=image_width, height=image_height),
+              Paragraph("The temporary HTTPS tunnel is for the local prototype. A hosted backend would replace that tunnel.", styles["small"]),
+              PageBreak(), Paragraph("Dashboard guide · Owner view", styles["h1"]),
+              Paragraph("The owner sees response totals and rating averages, urgent reports, improvement items, recurring themes, and a practical follow-up cue. Reports are labeled as customer-reported and require human review.", styles["body"]),
+              PdfImage(str(dashboard_image), width=image_width, height=image_height),
+              PageBreak(), Paragraph("03 · LangGraph building blocks", styles["h1"]),
               Paragraph("LangGraph keeps the workflow explicit and reviewable. The prototype uses bounded nodes and conditional edges, not open-ended model-driven tool loops.", styles["body"])]
     graph_rows = [
         ["Building block", "Use in Chai House"],
