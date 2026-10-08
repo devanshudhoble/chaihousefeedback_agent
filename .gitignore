@@ -1,0 +1,15 @@
+.venv/
+.uv-cache/
+.uv-python/
+__pycache__/
+*.py[cod]
+.env
+data/*.db
+data/uploads/*
+!data/uploads/.gitkeep
+static/qr-feedback.png
+*.log
+.coverage
+htmlcov/
+dist/
+build/

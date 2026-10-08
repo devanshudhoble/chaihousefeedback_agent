@@ -1,0 +1,95 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#f7f7f4">
+  <title>Chai House · Feedback Studio</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Manrope:wght@500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/static/styles.css">
+  <link rel="stylesheet" href="/static/feedback-photo.css">
+</head>
+<body>
+  <div class="app-shell">
+    <aside class="sidebar">
+      <a class="brand" href="/" aria-label="Chai House home">
+        <span class="brand-mark">CH</span>
+        <span><strong>chai house</strong><small>FEEDBACK STUDIO</small></span>
+      </a>
+      <div class="branch-card"><span class="status-dot"></span><span><b>Bommanahalli</b><small>Bengaluru · Active branch</small></span></div>
+      <nav class="side-nav" aria-label="Dashboard sections">
+        <a class="nav-link active" href="/?view=all"><span class="nav-icon">▦</span>Overview</a>
+        <a class="nav-link" href="/?view=emergency"><span class="nav-icon nav-red">!</span>Emergency <span class="nav-count">{{ metrics.emergency_count }}</span></a>
+        <a class="nav-link" href="/?view=improvement"><span class="nav-icon">↗</span>Needs improvement <span class="nav-count">{{ metrics.improvement_count }}</span></a>
+      </nav>
+      <div class="sidebar-bottom">
+        <div class="qr-mini"><img src="/static/qr-feedback.png" alt="Customer feedback QR code"><div><b>Collect feedback</b><small>Scan to open form</small><a href="/static/qr-feedback.png" download>Download QR ↗</a></div></div>
+        <div class="owner-chip"><span class="owner-avatar">CH</span><span><b>Owner dashboard</b><small>Read-only overview</small></span><span class="online-dot"></span></div>
+      </div>
+    </aside>
+
+    <main class="main-content">
+      <header class="topbar">
+        <div class="crumb">Workspace <span>/</span> <b>Feedback overview</b></div>
+        <div class="top-actions"><span class="live-label"><i></i> Live feedback</span><a class="icon-button" href="/" aria-label="Refresh dashboard" title="Refresh">↻</a></div>
+      </header>
+
+      <section class="page-heading">
+        <div><p class="eyebrow">THURSDAY · CUSTOMER EXPERIENCE</p><h1>Good afternoon, Chai House.</h1><p class="subheading">Here’s what your guests are telling you.</p></div>
+        <a class="button button-dark" href="/feedback?demo=true">＋ Preview customer form</a>
+      </section>
+
+      {% if metrics.emergency_count %}
+      <section class="emergency-banner">
+        <span class="emergency-symbol">!</span>
+        <div><strong>{{ metrics.emergency_count }} possible safety report{{ '' if metrics.emergency_count == 1 else 's' }} needs review</strong><p>These are unverified customer reports. Review promptly and follow your cafe’s safety procedure.</p></div>
+        <a href="/?view=emergency">View emergency feedback <span>→</span></a>
+      </section>
+      {% endif %}
+
+      <section class="metrics-grid" aria-label="Feedback metrics">
+        <article class="metric-card"><div class="metric-label">Total responses <span class="metric-icon">↗</span></div><div class="metric-value">{{ metrics.total }}<small>all time</small></div><div class="metric-foot">Customer feedback received</div></article>
+        <article class="metric-card"><div class="metric-label">Food taste <span class="metric-icon">✳</span></div><div class="metric-value">{{ '%.1f'|format(metrics.averages.food) }}<small>/ 5</small></div><div class="rating-track"><span style="width: {{ metrics.averages.food * 20 }}%"></span></div></article>
+        <article class="metric-card"><div class="metric-label">Waiting time <span class="metric-icon">◷</span></div><div class="metric-value">{{ '%.1f'|format(metrics.averages.wait) }}<small>/ 5</small></div><div class="rating-track"><span style="width: {{ metrics.averages.wait * 20 }}%"></span></div></article>
+        <article class="metric-card"><div class="metric-label">Needs improvement <span class="metric-icon">↗</span></div><div class="metric-value">{{ metrics.improvement_count }}<small>reports</small></div><div class="metric-foot">Service opportunities to review</div></article>
+      </section>
+
+      <section class="analysis-card">
+        <div class="analysis-mark">✳</div><div class="analysis-copy"><div class="section-kicker">FEEDBACK ANALYSIS <span class="ai-pill">AI SUMMARY</span></div><p>{{ narrative }}</p></div><div class="analysis-period">All feedback</div>
+      </section>
+
+      <section class="content-grid">
+        <div class="panel feedback-panel">
+          <div class="panel-heading"><div><div class="section-kicker">CUSTOMER VOICE</div><h2>{% if view == 'emergency' %}Emergency reports{% elif view == 'improvement' %}Needs improvement{% else %}Recent feedback{% endif %}</h2></div><a class="text-link" href="/?view=all">View all <span>→</span></a></div>
+          <div class="filter-row"><a class="filter-chip {{ 'selected' if view == 'all' else '' }}" href="/?view=all">All feedback</a><a class="filter-chip {{ 'selected' if view == 'emergency' else '' }}" href="/?view=emergency">Emergency <span class="filter-red">{{ metrics.emergency_count }}</span></a><a class="filter-chip {{ 'selected' if view == 'improvement' else '' }}" href="/?view=improvement">Improve <span>{{ metrics.improvement_count }}</span></a></div>
+          <div class="feedback-list">
+            {% for item in records %}
+            <article class="feedback-item">
+              <div class="feedback-avatar {{ 'avatar-red' if item.urgency == 'emergency' else '' }}">{{ '!' if item.urgency == 'emergency' else ('✳' if item.urgency == 'routine' else '↗') }}</div>
+              <div class="feedback-main"><div class="feedback-meta"><span class="category-label">{{ item.category|replace('_', ' ')|title }}</span><span class="feedback-time">{{ item.created_at[11:16] }} · {{ item.created_at[:10] }}</span></div><p>{{ item.summary or item.comment or 'Ratings submitted without a written comment.' }}</p>{% if item.photo_src %}<a class="feedback-photo-link" href="{{ item.photo_src }}" target="_blank" rel="noopener"><img class="feedback-photo" src="{{ item.photo_src }}" alt="Customer-submitted photo for feedback {{ item.id }}"><span>Open submitted photo ↗</span></a>{% endif %}<div class="feedback-tags"><span class="tag {{ 'tag-red' if item.urgency == 'emergency' else ('tag-amber' if item.urgency == 'improvement' else 'tag-green') }}">{{ 'Emergency review' if item.urgency == 'emergency' else ('Needs improvement' if item.urgency == 'improvement' else 'Positive / routine') }}</span>{% if item.image_path or item.image_url %}<span class="tag tag-photo">▧ Photo attached</span>{% endif %}<span class="ref-id">REF {{ item.id }}</span></div></div>
+              <div class="feedback-ratings"><span>Food <b>{{ item.food_rating }}/5</b></span><span>Wait <b>{{ item.wait_rating }}/5</b></span></div>
+            </article>
+            {% else %}
+            <div class="empty-state"><span>✳</span><b>No feedback in this view</b><p>New customer submissions will appear here.</p></div>
+            {% endfor %}
+          </div>
+        </div>
+        <aside class="panel insight-panel">
+          <div class="panel-heading"><div><div class="section-kicker">WHAT TO FOCUS ON</div><h2>Experience signals</h2></div><span class="sparkle">✳</span></div>
+          {% for item in metrics.top_categories %}
+          <div class="signal-row"><span class="signal-dot dot-{{ loop.index }}"></span><div class="signal-body"><div><b>{{ item.category|replace('_', ' ')|title }}</b><small>{{ item.count }} report{{ '' if item.count == 1 else 's' }}</small></div><div class="signal-track"><span style="width: {{ [item.count * 18, 100]|min }}%"></span></div></div></div>
+          {% else %}
+          <div class="quiet-state">Your experience signals will appear as feedback comes in.</div>
+          {% endfor %}
+          <div class="insight-note"><span>✦</span><p>Use recurring feedback as a cue to review service routines with your team.</p></div>
+          <a class="button button-outline button-wide" href="/api/dashboard" target="_blank">View dashboard data <span>↗</span></a>
+        </aside>
+      </section>
+      <footer class="page-footer"><span>Chai House Feedback Studio</span><span>Feedback is customer-reported and may be unverified.</span><a href="/health">System status <i class="online-dot"></i></a></footer>
+    </main>
+  </div>
+  <script>window.setTimeout(() => window.location.reload(), 60000);</script>
+</body>
+</html>
